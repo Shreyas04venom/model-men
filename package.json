@@ -1,0 +1,9 @@
+{
+  "name": "hair-try-on",
+  "version": "1.0.0",
+  "description": "Men's Hairstyle Try-On using Jeeliz Face Filter",
+  "scripts": {
+  "dev": "npx http-server -p 8080 -c-1 --ssl --cert cert.crt --key cert.key"
+}
+
+}

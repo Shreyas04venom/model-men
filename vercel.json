@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/demos/threejs/hair_filter/index.html"
+    }
+  ]
+}

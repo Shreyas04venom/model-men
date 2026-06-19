@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="content-language" content="en-EN" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
+    <meta name="robots" content="noindex, nofollow" />
+
+    <script>
+      if (window.trustedTypes && window.trustedTypes.createPolicy) {
+        window.trustedTypes.createPolicy('default', {
+          createHTML: function(string) { return string; }
+        });
+      }
+    </script>
+    <title>JEELIZ FACEFILTER: MEN'S HAIRSTYLE TRY-ON</title>
+
+    <!-- JEELIZ FACEFILTER -->
+    <script src="../../../dist/jeelizFaceFilter.js"></script>
+    <!-- THREE.JS + GLTF LOADER -->
+    <script src="../../../libs/three/v112/three.js"></script>
+    <script src="../../../libs/three/v112/GLTFLoader.js"></script>
+    <!-- HELPERS -->
+    <script src="../../../helpers/JeelizResizer.js"></script>
+    <script src="../../../helpers/JeelizThreeHelper.js"></script>
+    <!-- DEMO SCRIPT -->
+    <script src="./main.js"></script>
+
+    <link rel="stylesheet" href="../../appearance/style.css" type="text/css" />
+
+    <style>
+      /* ── BASE ── */
+      *, *::before, *::after { box-sizing: border-box; }
+
+      /* ── HAIRSTYLE NAME BANNER (top-centre) ── */
+      #hairName {
+        position: fixed;
+        top: 18px;
+        left: 50%;
+        transform: translateX(-50%) translateY(-12px);
+        z-index: 20;
+        background: rgba(0, 0, 0, 0.52);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        color: #fff;
+        font-family: 'Segoe UI', sans-serif;
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        padding: 7px 22px;
+        border-radius: 30px;
+        border: 1.5px solid rgba(255,121,198,0.55);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        white-space: nowrap;
+      }
+      #hairName.visible {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+
+      /* ── BOTTOM OVERLAY ── */
+      #ui {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 10px 6px 14px;
+        background: linear-gradient(transparent, rgba(0,0,0,0.60));
+        pointer-events: none;
+      }
+
+      /* ── TUNING SLIDERS ── */
+      #tuning {
+        display: flex;
+        gap: 14px;
+        margin-bottom: 8px;
+        pointer-events: all;
+      }
+      .tune-group {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: #fff;
+        font-family: 'Segoe UI', sans-serif;
+        font-size: 11px;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+        gap: 2px;
+      }
+      .tune-group input[type=range] {
+        width: 90px;
+        accent-color: #ff79c6;
+      }
+
+      /* ── COLOUR PANEL ── */
+      #colorSection {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        margin-bottom: 8px;
+        pointer-events: all;
+        width: 100%;
+      }
+      #colorLabel {
+        color: rgba(255,255,255,0.75);
+        font-family: 'Segoe UI', sans-serif;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+      }
+      #colorPanel {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 6px;
+        overflow-x: auto;
+        max-width: 100%;
+        padding: 4px 6px;
+        scrollbar-width: none;
+      }
+      #colorPanel::-webkit-scrollbar { display: none; }
+
+      .color-swatch {
+        flex-shrink: 0;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: 2.5px solid rgba(255,255,255,0.30);
+        cursor: pointer;
+        transition: transform 0.15s, border-color 0.15s;
+        outline: none;
+        position: relative;
+      }
+      .color-swatch:hover  { transform: scale(1.18); }
+      .color-swatch.active {
+        border-color: #ff79c6;
+        transform: scale(1.22);
+        box-shadow: 0 0 0 2px rgba(255,121,198,0.45);
+      }
+
+      /* Custom colour picker swatch */
+      .custom-wrap {
+        background: conic-gradient(
+          red, yellow, lime, cyan, blue, magenta, red
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        padding: 0;
+      }
+      .custom-wrap input[type=color] {
+        opacity: 0;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+        border: none;
+        padding: 0;
+      }
+
+      /* ── HAIR STYLE STRIP ── */
+      #hairStrip {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        max-width: 100%;
+        padding: 6px 8px 4px;
+        pointer-events: all;
+        scrollbar-width: none;
+        align-items: flex-end;
+      }
+      #hairStrip::-webkit-scrollbar { display: none; }
+
+      .hair-btn {
+        flex-shrink: 0;
+        width: 72px;
+        height: 82px;
+        border-radius: 14px;
+        border: 2.5px solid rgba(255,255,255,0.20);
+        background: rgba(30,20,40,0.55) center/cover no-repeat;
+        color: #fff;
+        font-size: 10px;
+        font-family: 'Segoe UI', sans-serif;
+        font-weight: 600;
+        cursor: pointer;
+        transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(3px);
+        -webkit-backdrop-filter: blur(3px);
+        overflow: hidden;
+        padding: 0;
+        position: relative;
+      }
+      /* Subtle name label at bottom of each card */
+      .hair-btn::after {
+        content: attr(data-short);
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(transparent, rgba(0,0,0,0.72));
+        color: #fff;
+        font-size: 9px;
+        font-weight: 700;
+        text-align: center;
+        padding: 10px 2px 3px;
+        letter-spacing: 0.2px;
+        line-height: 1.2;
+        pointer-events: none;
+      }
+      .hair-btn:hover {
+        transform: scale(1.07) translateY(-3px);
+        border-color: rgba(255,255,255,0.55);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+      }
+      .hair-btn.active {
+        border-color: #ff79c6;
+        transform: scale(1.10) translateY(-4px);
+        box-shadow: 0 0 0 3px rgba(255,121,198,0.45), 0 8px 20px rgba(0,0,0,0.55);
+      }
+      /* Spinner inside button while thumbnail loads */
+      .hair-btn svg { display: block; }
+
+      /* ── STATUS BAR ── */
+      #status {
+        color: #fff;
+        font-family: 'Segoe UI', sans-serif;
+        font-size: 13px;
+        margin-top: 6px;
+        text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+        pointer-events: none;
+        min-height: 18px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <canvas width="600" height="600" id="jeeFaceFilterCanvas"></canvas>
+
+    <!-- ── HAIRSTYLE NAME BANNER ── -->
+    <div id="hairName"></div>
+
+    <!-- ── BOTTOM UI ── -->
+    <div id="ui">
+
+      <!-- Tuning sliders -->
+      <div id="tuning">
+        <div class="tune-group">
+          <label for="slY">Crown ↕</label>
+          <input id="slY" type="range" min="-1.50" max="1.50" step="0.01" value="0.02">
+        </div>
+        <div class="tune-group">
+          <label for="slZ">Depth ↔</label>
+          <input id="slZ" type="range" min="-1.50" max="1.50" step="0.01" value="0.06">
+        </div>
+        <div class="tune-group">
+          <label for="slS">Scale</label>
+          <input id="slS" type="range" min="0.2" max="5.0" step="0.05" value="1">
+        </div>
+      </div>
+
+      <!-- Colour filter -->
+      <div id="colorSection">
+        <div id="colorLabel">Hair Colour</div>
+        <div id="colorPanel"></div>
+      </div>
+
+      <!-- Hairstyle selector -->
+      <div id="hairStrip"></div>
+
+      <div id="status">Loading face detector…</div>
+    </div>
+  </body>
+</html>
